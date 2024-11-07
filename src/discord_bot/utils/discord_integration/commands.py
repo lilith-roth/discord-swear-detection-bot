@@ -17,7 +17,10 @@ def setup_commands(command_tree: CommandTree[Client]):
         :param new_swear:
         :return:
         """
-        if not await is_discord_mod(interaction.user.roles, interaction.guild_id):
+        if not await is_discord_mod(interaction.user.roles, interaction.guild_id, interaction.user.resolved_permissions.administrator):
+            await interaction.response.send_message(
+                f"{interaction.user} is not permitted!"
+            )
             return
         discord_server_instance, created = await DiscordServer.objects.aget_or_create(
             discord_server_id=interaction.guild_id,
@@ -49,7 +52,10 @@ def setup_commands(command_tree: CommandTree[Client]):
         :param interaction:
         :return:
         """
-        if not is_discord_mod(interaction.user.roles, interaction.guild_id):
+        if not is_discord_mod(interaction.user.roles, interaction.guild_id, interaction.user.resolved_permissions.administrator):
+            await interaction.response.send_message(
+                f"{interaction.user} is not permitted!"
+            )
             return
         discord_server_instance, _ = await DiscordServer.objects.aget_or_create(
             discord_server_id=interaction.guild_id,
