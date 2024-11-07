@@ -1,0 +1,55 @@
+version: '2.4'
+
+
+services:
+  # Database
+  postgres:
+    image: postgres
+    restart: always
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    env_file:
+      - ../src/discord_bot_project/.env
+    environment:
+      POSTGRES_DB: webdb
+    ports:
+      - "5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Web Server
+  web:
+    image: discord-swear-typo-bot:main
+    build:
+      context: ../
+      dockerfile: src/dockerfile
+    restart: always
+    ports:
+      - "8834:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../src/discord_bot_project/.env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8000" ]
+      interval: 60s
+      timeout: 20s
+      start_period: 1m30s
+      retries: 5
+
+  bot:
+    image: discord-swear-typo-bot:main
+    build:
+      context: ../
+      dockerfile: src/dockerfile
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../src/discord_bot_project/.env
+    command: make discord-bot
